@@ -3,8 +3,9 @@ name = "cust-journey"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "django>=6.0.6",
     "django-htmx>=1.27.0",
+    "gunicorn>=26.0.0",
 ]
