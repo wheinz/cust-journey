@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}KPI Roadmap{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-6 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Implementation Roadmap</h1>
+        <p class="text-sm text-gray-500 mt-1">Quarterly view — KPIs positioned by target quarter, colored by implementation phase</p>
+    </div>
+
+    <!-- Filters -->
+    <form id="roadmap-filter-form"
+          hx-get="{% url 'kpi:roadmap' %}"
+          hx-target="#roadmap-grid"
+          hx-swap="innerHTML"
+          hx-trigger="change from:select, keyup delay:300ms from:input[name=owner]"
+          class="mb-6 bg-white border border-gray-200 rounded-lg p-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Lifecycle Phase</label>
+                <select name="lifecycle_phase" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for lc in lifecycle_phase_choices %}
+                        <option value="{{ lc.pk }}" {% if active_lifecycle_phase == lc.pk|stringformat:'s' %}selected{% endif %}>{{ lc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Owner</label>
+                <input type="text" name="owner" value="{{ active_owner }}"
+                       class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Filter by owner...">
+            </div>
+            {% if show_filtered %}
+                <div class="flex items-end">
+                    <button type="button"
+                            onclick="this.form.owner.value=''; this.form.lifecycle_phase.value=''; htmx.trigger(this.form, 'change')"
+                            class="text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors">
+                        Clear filters
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <div id="roadmap-grid">
+        {% include "kpi/partials/roadmap_grid.html" %}
+    </div>
+</div>
+{% endblock %}

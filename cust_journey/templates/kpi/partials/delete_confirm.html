@@ -1,0 +1,18 @@
+<div>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Delete KPI?</h2>
+    <p class="text-sm text-gray-600 mb-6">
+        Are you sure you want to delete "{{ object }}"?
+    </p>
+    <form method="post" action="{{ request.path }}" class="flex justify-end gap-3">
+        {% csrf_token %}
+        <button type="button"
+                @click="$dispatch('close-modal')"
+                class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+            Delete
+        </button>
+    </form>
+</div>

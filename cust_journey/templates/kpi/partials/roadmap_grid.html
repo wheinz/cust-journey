@@ -1,0 +1,47 @@
+{% if quarters %}
+    <div class="overflow-x-auto pb-2">
+        <div class="grid gap-4" style="grid-template-columns: repeat({{ quarters|length }}, minmax(300px, 1fr));">
+            {% for q in quarters %}
+            <div class="bg-white border border-gray-200 rounded-lg">
+                <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
+                    <h2 class="text-sm font-semibold text-gray-700">{{ q }}</h2>
+                </div>
+                <div class="p-3 space-y-2">
+                    {% for kpi in all_kpis %}
+                        {% if kpi.target_quarter == q %}
+                            <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
+                                    hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="w-full text-left border rounded-md px-3 py-2 hover:shadow transition-shadow
+                                        {% if kpi.implementation_phase == 'defined' %}border-gray-300 bg-gray-50
+                                        {% elif kpi.implementation_phase == 'data_sourced' %}border-yellow-300 bg-yellow-50
+                                        {% elif kpi.implementation_phase == 'instrumented' %}border-blue-300 bg-blue-50
+                                        {% else %}border-green-300 bg-green-50{% endif %}">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-1.5 h-1.5 rounded-full flex-shrink-0
+                                        {% if kpi.implementation_phase == 'defined' %}bg-gray-400
+                                        {% elif kpi.implementation_phase == 'data_sourced' %}bg-yellow-500
+                                        {% elif kpi.implementation_phase == 'instrumented' %}bg-blue-500
+                                        {% else %}bg-green-500{% endif %}"></div>
+                                    <span class="text-sm font-medium text-gray-800 truncate">{{ kpi.name }}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-gray-400">
+                                    <span>{{ kpi.get_implementation_phase_display }}</span>
+                                    {% if kpi.impact and kpi.effort %}
+                                        <span>· I{{ kpi.impact }} E{{ kpi.effort }}</span>
+                                    {% endif %}
+                                    <span>{{ kpi.lifecycle_phase.name|default:'' }}</span>
+                                </div>
+                            </button>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="text-center py-12 text-gray-400">
+        <p class="text-sm">No KPIs match the current filters.</p>
+        <p class="text-xs mt-2">Try adjusting the journey phase or owner filters.</p>
+    </div>
+{% endif %}

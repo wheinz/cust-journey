@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}KPI Hierarchy{% endblock %}
+
+{% block content %}
+<div class="flex h-[calc(100vh-53px)]">
+    <!-- Sidebar -->
+    <div class="w-96 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-800">KPI Hierarchy</h2>
+            <p class="text-xs text-gray-500 mt-1">Business KPIs and their supporting metrics</p>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3" id="sidebar-tree">
+            {% for root in roots %}
+                <div x-data="{ expanded: true }" class="mb-1">
+                    <button @click="expanded = !expanded"
+                            hx-get="{% url 'kpi:hierarchy_detail' root.pk %}"
+                            hx-target="#detail-panel"
+                            hx-swap="innerHTML"
+                            class="w-full text-left px-3 py-2 rounded-md flex items-center justify-between hover:bg-blue-50 transition-colors text-sm font-medium text-blue-800">
+                        <span>{{ root.name }}</span>
+                        <div class="flex items-center gap-2">
+                            {% with kpi_count=root.contributing_kpis|length metric_count=root.direct_metrics|length %}
+                                <span class="text-xs text-gray-400">{{ kpi_count|add:metric_count }}</span>
+                            {% endwith %}
+                            <svg :class="expanded ? 'rotate-90' : ''"
+                                 class="w-4 h-4 transition-transform text-gray-400"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    </button>
+                    <div x-show="expanded" x-collapse class="ml-4">
+                        {% for kpi in root.contributing_kpis %}
+                            <div x-data="{ subExpanded: false }" class="mb-1">
+                                <button @click="subExpanded = !subExpanded"
+                                        hx-get="{% url 'kpi:hierarchy_detail' kpi.pk %}"
+                                        hx-target="#detail-panel"
+                                        hx-swap="innerHTML"
+                                        class="w-full text-left px-3 py-1.5 rounded-md flex items-center justify-between hover:bg-blue-50 transition-colors text-sm text-blue-700">
+                                    <span>{{ kpi.name }}</span>
+                                    <div class="flex items-center gap-2">
+                                        {% if kpi.contributing_metrics %}
+                                            <span class="text-xs text-gray-400">{{ kpi.contributing_metrics|length }}</span>
+                                        {% endif %}
+                                        <svg :class="subExpanded ? 'rotate-90' : ''"
+                                             class="w-3.5 h-3.5 transition-transform text-gray-400"
+                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </button>
+                                <div x-show="subExpanded" x-collapse class="ml-3">
+                                    {% for metric in kpi.contributing_metrics %}
+                                        <button hx-get="{% url 'kpi:hierarchy_detail' metric.pk %}"
+                                                hx-target="#detail-panel"
+                                                hx-swap="innerHTML"
+                                                class="w-full text-left px-3 py-1 rounded-md hover:bg-blue-50 transition-colors text-sm text-gray-500">
+                                            {{ metric.name }}
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        {# Metrics linked directly to this Business KPI #}
+                        {% for metric in root.direct_metrics %}
+                            <button hx-get="{% url 'kpi:hierarchy_detail' metric.pk %}"
+                                    hx-target="#detail-panel"
+                                    hx-swap="innerHTML"
+                                    class="w-full text-left px-3 py-1 rounded-md hover:bg-blue-50 transition-colors text-sm text-gray-500">
+                                {{ metric.name }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-sm text-gray-400 text-center py-8">
+                    No Business KPIs found. Create them in the <a href="{% url 'kpi:table' %}" class="text-blue-600 hover:underline">KPI Framework</a>.
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="flex-1 overflow-y-auto p-6" id="detail-panel">
+        <div class="flex items-center justify-center h-full text-gray-400">
+            <div class="text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-sm">Select a Business KPI to view contributing metrics</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

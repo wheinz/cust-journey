@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Customer Journey | Journey Viewer{% endblock %}
+
+{% block content %}
+<div class="flex h-[calc(100vh-53px)]">
+    <!-- Sidebar -->
+    <div class="w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-800">Journey Map</h2>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3" id="sidebar-tree">
+            {% for phase in phases %}
+                <div x-data="{ expanded: true }" class="mb-1">
+                    <button @click="expanded = !expanded"
+                            hx-get="{% url 'journey:phase_detail' phase.pk %}"
+                            hx-target="#detail-panel"
+                            hx-swap="innerHTML"
+                            class="w-full text-left px-3 py-2 rounded-md flex items-center justify-between hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700">
+                        <span>{{ phase.name }}</span>
+                        <svg :class="expanded ? 'rotate-90' : ''"
+                             class="w-4 h-4 transition-transform text-gray-400"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                    <div x-show="expanded" x-collapse class="ml-4">
+                        {% for jp in phase.journey_phases.all %}
+                            <div x-data="{ subExpanded: false }" class="mb-1">
+                                <button @click="subExpanded = !subExpanded"
+                                        hx-get="{% url 'journey:journey_phase_detail' jp.pk %}"
+                                        hx-target="#detail-panel"
+                                        hx-swap="innerHTML"
+                                        class="w-full text-left px-3 py-1.5 rounded-md flex items-center justify-between hover:bg-gray-100 transition-colors text-sm text-gray-600">
+                                    <span>{{ jp.name }}</span>
+                                    <svg :class="subExpanded ? 'rotate-90' : ''"
+                                         class="w-3.5 h-3.5 transition-transform text-gray-400"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                                <div x-show="subExpanded" x-collapse class="ml-3">
+                                    {% for step in jp.steps.all %}
+                                        <button hx-get="{% url 'journey:step_detail' step.pk %}"
+                                                hx-target="#detail-panel"
+                                                hx-swap="innerHTML"
+                                                class="w-full text-left px-3 py-1 rounded-md hover:bg-gray-100 transition-colors text-sm text-gray-500">
+                                            {{ step.name }}
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-sm text-gray-400 text-center py-8">
+                    No phases yet. Add them via the admin panel.
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="flex-1 overflow-y-auto p-6" id="detail-panel">
+        <div class="flex items-center justify-center h-full text-gray-400">
+            <div class="text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-sm">Select a node from the sidebar to view details</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+<table class="w-full text-sm">
+    <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">KPI</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Level</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Type</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Phase</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Impact</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Effort</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Target Q</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Owner</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Lifecycle</th>
+            <th class="text-left px-4 py-3 font-medium text-gray-600">Measured?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% include "kpi/partials/table_body.html" %}
+    </tbody>
+</table>
+
+{% if is_paginated %}
+<div class="flex items-center justify-between mt-4">
+    <span class="text-sm text-gray-500">
+        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ paginator.count }}
+    </span>
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+            <button hx-get="{% url 'kpi:kpi_filter' %}?page={{ page_obj.previous_page_number }}&q={{ active_filters.q|urlencode }}&level={{ active_filters.level }}&kpi_type={{ active_filters.kpi_type }}&lifecycle_phase={{ active_filters.lifecycle_phase }}&do_we_measure_it={{ active_filters.do_we_measure_it }}&implementation_phase={{ active_filters.implementation_phase }}&target_quarter={{ active_filters.target_quarter }}"
+                    hx-target="#kpi-table-container"
+                    hx-swap="innerHTML"
+                    class="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                Previous
+            </button>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <button hx-get="{% url 'kpi:kpi_filter' %}?page={{ page_obj.next_page_number }}&q={{ active_filters.q|urlencode }}&level={{ active_filters.level }}&kpi_type={{ active_filters.kpi_type }}&lifecycle_phase={{ active_filters.lifecycle_phase }}&do_we_measure_it={{ active_filters.do_we_measure_it }}&implementation_phase={{ active_filters.implementation_phase }}&target_quarter={{ active_filters.target_quarter }}"
+                    hx-target="#kpi-table-container"
+                    hx-swap="innerHTML"
+                    class="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                Next
+            </button>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

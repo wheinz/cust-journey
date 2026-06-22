@@ -1,0 +1,25 @@
+<div>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Delete {{ node_type }}?</h2>
+    <p class="text-sm text-gray-600 mb-6">
+        Are you sure you want to delete "{{ object }}"?
+        {% if node_type == 'lifecycle' %}
+            This will also delete all journey phases, steps, and actions within it.
+        {% elif node_type == 'journey_phase' %}
+            This will also delete all steps and actions within it.
+        {% elif node_type == 'step' %}
+            This will also delete all actions within it.
+        {% endif %}
+    </p>
+    <form method="post" action="{{ request.path }}" class="flex justify-end gap-3">
+        {% csrf_token %}
+        <button type="button"
+                @click="$dispatch('close-modal')"
+                class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+            Delete
+        </button>
+    </form>
+</div>

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}KPI Framework{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-6 py-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">KPI Framework</h1>
+        <button hx-get="{% url 'kpi:kpi_create' %}"
+                hx-target="#modal-content"
+                hx-swap="innerHTML"
+                class="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+            + Add KPI
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <form id="kpi-filter-form"
+          hx-get="{% url 'kpi:kpi_filter' %}"
+          hx-target="#kpi-table-container"
+          hx-swap="innerHTML"
+          hx-trigger="change from:select, keyup delay:300ms from:input[name=q]"
+          class="mb-6 bg-white border border-gray-200 rounded-lg p-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+                <input type="text" name="q" value="{{ active_filters.q }}"
+                       class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Search KPIs...">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Level</label>
+                <select name="level" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for value, label in level_choices %}
+                        <option value="{{ value }}" {% if active_filters.level == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+                <select name="kpi_type" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for value, label in kpi_type_choices %}
+                        <option value="{{ value }}" {% if active_filters.kpi_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Impl. Phase</label>
+                <select name="implementation_phase" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for value, label in phase_choices %}
+                        <option value="{{ value }}" {% if active_filters.implementation_phase == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Lifecycle Phase</label>
+                <select name="lifecycle_phase" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for lc in lifecycle_choices %}
+                        <option value="{{ lc.pk }}" {% if active_filters.lifecycle_phase == lc.pk|stringformat:'s' %}selected{% endif %}>{{ lc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Measured?</label>
+                <select name="do_we_measure_it" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for value, label in measure_choices %}
+                        <option value="{{ value }}" {% if active_filters.do_we_measure_it == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Target Quarter</label>
+                <select name="target_quarter" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for q in quarter_choices %}
+                        <option value="{{ q }}" {% if active_filters.target_quarter == q %}selected{% endif %}>{{ q }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <!-- Table + Pagination container -->
+    <div id="kpi-table-container" class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            {% include "kpi/partials/table_section.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

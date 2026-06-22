@@ -1,0 +1,115 @@
+<div class="max-w-2xl">
+    <h2 class="text-xl font-bold text-gray-900 mb-1">{{ kpi.name }}</h2>
+    <p class="text-sm text-gray-500 mb-4">{{ kpi.get_level_display }} &middot; {{ kpi.get_kpi_type_display|default:'n.a.' }}</p>
+
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Owner</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.owner|default:'—' }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Review Cadence</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_review_cadence_display|default:'—' }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Measured?</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_do_we_measure_it_display }}</p>
+        </div>
+        {% if kpi.impact %}
+            <div>
+                <label class="text-xs font-medium text-gray-500 uppercase">Impact</label>
+                <p class="text-sm text-gray-900 mt-1">{{ kpi.impact }}/5</p>
+            </div>
+        {% endif %}
+        {% if kpi.effort %}
+            <div>
+                <label class="text-xs font-medium text-gray-500 uppercase">Effort</label>
+                <p class="text-sm text-gray-900 mt-1">{{ kpi.effort }}/5</p>
+            </div>
+        {% endif %}
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Phase</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_implementation_phase_display }}</p>
+        </div>
+    </div>
+
+    {% if kpi.description %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Description</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.description }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.why_important %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Why Important?</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.why_important }}</p>
+        </div>
+    {% endif %}
+
+    <div class="border-t border-gray-200 pt-4 mb-6">
+        {% if kpi.contributes_to.exists %}
+            <div class="mb-4">
+                <label class="text-xs font-medium text-gray-500 uppercase">Contributes to</label>
+                <div class="mt-1 space-y-1">
+                    {% for parent in kpi.contributes_to.all %}
+                        <a href="#"
+                           hx-get="{% url 'kpi:hierarchy_detail' parent.pk %}"
+                           hx-target="#detail-panel"
+                           hx-swap="innerHTML"
+                           class="block text-sm text-blue-600 hover:text-blue-800">
+                            {{ parent.name }}
+                            <span class="text-xs text-gray-400 ml-1">({{ parent.get_level_display }})</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if kpi.supported_by.exists %}
+            <div class="mb-4">
+                <label class="text-xs font-medium text-gray-500 uppercase">Supported by</label>
+                <div class="mt-1 space-y-1">
+                    {% for child in kpi.supported_by.all %}
+                        <a href="#"
+                           hx-get="{% url 'kpi:hierarchy_detail' child.pk %}"
+                           hx-target="#detail-panel"
+                           hx-swap="innerHTML"
+                           class="block text-sm text-blue-600 hover:text-blue-800">
+                            {{ child.name }}
+                            <span class="text-xs text-gray-400 ml-1">({{ child.get_level_display }})</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if kpi.lifecycle_phase %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Linked Journey</label>
+            <p class="text-sm text-gray-700 mt-1">
+                {{ kpi.lifecycle_phase.name }}
+                {% if kpi.journey_phase %} &rarr; {{ kpi.journey_phase.name }}{% endif %}
+                {% if kpi.step %} &rarr; {{ kpi.step.name }}{% endif %}
+            </p>
+        </div>
+    {% endif %}
+
+    {% if kpi.initiatives %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Initiatives</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.initiatives }}</p>
+        </div>
+    {% endif %}
+
+    <div class="flex gap-3 pt-4 border-t border-gray-100">
+        <a href="{% url 'kpi:kpi_edit' kpi.pk %}"
+           hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
+           hx-target="#modal-content"
+           hx-swap="innerHTML"
+           class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Edit
+        </a>
+    </div>
+</div>

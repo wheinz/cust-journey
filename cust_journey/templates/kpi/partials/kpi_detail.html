@@ -1,0 +1,113 @@
+<div>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-900">{{ kpi.name }}</h2>
+        <button @click="$dispatch('close-modal')"
+                class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Level</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_level_display }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Type</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_kpi_type_display }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Owner</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.owner|default:'—' }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Review Cadence</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_review_cadence_display|default:'—' }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Lifecycle Phase</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.lifecycle_phase.name|default:'—' }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Measured?</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_do_we_measure_it_display }}</p>
+        </div>
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Source</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.where_store|default:'—' }}</p>
+        </div>
+    </div>
+
+    {% if kpi.description %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Description</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.description }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.why_important %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Why Important?</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.why_important }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.how_measure_it %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">How Measured</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.how_measure_it }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.influences %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Influences</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.influences }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.initiatives %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Initiatives</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.initiatives }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.notes %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Notes</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.notes }}</p>
+        </div>
+    {% endif %}
+
+    {% if kpi.contributes_to.exists %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Contributes to</label>
+            <div class="mt-1 space-y-0.5">
+                {% for parent in kpi.contributes_to.all %}
+                    <p class="text-sm text-gray-700">{{ parent.name }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    {% if kpi.supported_by.exists %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Supported by</label>
+            <div class="mt-1 space-y-0.5">
+                {% for child in kpi.supported_by.all %}
+                    <p class="text-sm text-gray-700">{{ child.name }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+        <a href="{% url 'kpi:kpi_edit' kpi.pk %}"
+           hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
+           hx-target="#modal-content"
+           hx-swap="innerHTML"
+           class="text-sm text-blue-600 hover:text-blue-800">Edit</a>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}KPI Prioritization{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-auto px-6 py-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Prioritization Matrix</h1>
+            <p class="text-sm text-gray-500 mt-1">Impact × Effort — score KPIs to build your implementation roadmap</p>
+        </div>
+        <div class="flex items-center gap-3">
+            {% if unscored %}
+                <span class="text-sm text-gray-400">{{ unscored }} unscored</span>
+            {% endif %}
+            {% if total_scored %}
+                <span class="text-sm text-gray-400">{{ total_scored }} scored</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form id="prioritize-filter-form"
+          hx-get="{% url 'kpi:prioritize' %}"
+          hx-target="#prioritize-grid"
+          hx-swap="innerHTML"
+          hx-trigger="change from:select, keyup delay:300ms from:input[name=owner]"
+          class="mb-6 bg-white border border-gray-200 rounded-lg p-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Lifecycle Phase</label>
+                <select name="lifecycle_phase" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for lc in lifecycle_phase_choices %}
+                        <option value="{{ lc.pk }}" {% if active_lifecycle_phase == lc.pk|stringformat:'s' %}selected{% endif %}>{{ lc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Owner</label>
+                <input type="text" name="owner" value="{{ active_owner }}"
+                       class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Filter by owner...">
+            </div>
+            {% if show_filtered %}
+                <div class="flex items-end">
+                    <button type="button"
+                            onclick="this.form.owner.value=''; this.form.lifecycle_phase.value=''; htmx.trigger(this.form, 'change')"
+                            class="text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors">
+                        Clear filters
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+
+    <div id="prioritize-grid">
+        {% include "kpi/partials/prioritize_grid.html" %}
+    </div>
+</div>
+{% endblock %}

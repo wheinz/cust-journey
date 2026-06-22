@@ -1,0 +1,67 @@
+{% for kpi in kpis %}
+    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+        <td class="px-4 py-3">
+            <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
+                    hx-target="#modal-content"
+                    hx-swap="innerHTML"
+                    class="text-blue-600 hover:text-blue-800 font-medium text-sm text-left">
+                {{ kpi.name }}
+            </button>
+        </td>
+        <td class="px-4 py-3">
+            {% if kpi.level == 'business_kpi' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{{ kpi.get_level_display }}</span>
+            {% elif kpi.level == 'kpi' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{{ kpi.get_level_display }}</span>
+            {% else %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{{ kpi.get_level_display }}</span>
+            {% endif %}
+        </td>
+        <td class="px-4 py-3">
+            {% if kpi.kpi_type == 'behavioral' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Behavioral</span>
+            {% elif kpi.kpi_type == 'experience' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">Experience</span>
+            {% elif kpi.kpi_type == 'operational' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Operational</span>
+            {% else %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">n.a.</span>
+            {% endif %}
+        </td>
+        <td class="px-4 py-3">
+            {% if kpi.implementation_phase == 'defined' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Defined</span>
+            {% elif kpi.implementation_phase == 'data_sourced' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Data sourced</span>
+            {% elif kpi.implementation_phase == 'instrumented' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Instrumented</span>
+            {% else %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Actively reviewed</span>
+            {% endif %}
+        </td>
+        <td class="px-4 py-3 text-gray-600 text-center">
+            {{ kpi.impact|default:'—' }}
+        </td>
+        <td class="px-4 py-3 text-gray-600 text-center">
+            {{ kpi.effort|default:'—' }}
+        </td>
+        <td class="px-4 py-3 text-gray-600">{{ kpi.target_quarter|default:'—' }}</td>
+        <td class="px-4 py-3 text-gray-700 text-xs">{{ kpi.owner|truncatechars:24 }}</td>
+        <td class="px-4 py-3 text-gray-600 text-xs">{{ kpi.lifecycle_phase.name|default:'—' }}</td>
+        <td class="px-4 py-3">
+            {% if kpi.do_we_measure_it == 'yes' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Yes</span>
+            {% elif kpi.do_we_measure_it == 'partially' %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Partially</span>
+            {% else %}
+                <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">No</span>
+            {% endif %}
+        </td>
+    </tr>
+{% empty %}
+    <tr>
+        <td colspan="10" class="px-4 py-12 text-center text-gray-400">
+            No KPIs found.
+        </td>
+    </tr>
+{% endfor %}
