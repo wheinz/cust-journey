@@ -18,13 +18,13 @@
         {% if kpi.impact %}
             <div>
                 <label class="text-xs font-medium text-gray-500 uppercase">Impact</label>
-                <p class="text-sm text-gray-900 mt-1">{{ kpi.impact }}/5</p>
+                <p class="text-sm text-gray-900 mt-1">{{ kpi.get_impact_display }}</p>
             </div>
         {% endif %}
         {% if kpi.effort %}
             <div>
                 <label class="text-xs font-medium text-gray-500 uppercase">Effort</label>
-                <p class="text-sm text-gray-900 mt-1">{{ kpi.effort }}/5</p>
+                <p class="text-sm text-gray-900 mt-1">{{ kpi.get_effort_display }}</p>
             </div>
         {% endif %}
         <div>

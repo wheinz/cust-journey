@@ -34,10 +34,18 @@
             <label class="text-xs font-medium text-gray-500 uppercase">Measured?</label>
             <p class="text-sm text-gray-900 mt-1">{{ kpi.get_do_we_measure_it_display }}</p>
         </div>
+        {% if kpi.store_current %}
         <div>
-            <label class="text-xs font-medium text-gray-500 uppercase">Source</label>
-            <p class="text-sm text-gray-900 mt-1">{{ kpi.where_store|default:'—' }}</p>
+            <label class="text-xs font-medium text-gray-500 uppercase">Stored Today</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.store_current }}</p>
         </div>
+        {% endif %}
+        {% if kpi.store_target %}
+        <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Target Source</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.store_target }}</p>
+        </div>
+        {% endif %}
     </div>
 
     {% if kpi.description %}
@@ -54,17 +62,27 @@
         </div>
     {% endif %}
 
-    {% if kpi.how_measure_it %}
+    {% if kpi.measurement_current %}
         <div class="mb-4">
-            <label class="text-xs font-medium text-gray-500 uppercase">How Measured</label>
-            <p class="text-sm text-gray-700 mt-1">{{ kpi.how_measure_it }}</p>
+            <label class="text-xs font-medium text-gray-500 uppercase">How Measured Today</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.measurement_current }}</p>
         </div>
     {% endif %}
-
-    {% if kpi.influences %}
+    {% if kpi.measurement_target %}
         <div class="mb-4">
-            <label class="text-xs font-medium text-gray-500 uppercase">Influences</label>
-            <p class="text-sm text-gray-700 mt-1">{{ kpi.influences }}</p>
+            <label class="text-xs font-medium text-gray-500 uppercase">How We Should Measure</label>
+            <p class="text-sm text-gray-700 mt-1">{{ kpi.measurement_target }}</p>
+        </div>
+    {% endif %}
+    {% if kpi.measurement_trigger %}
+        <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Measurement Trigger</label>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-teal-50 text-teal-700">{{ kpi.get_measurement_trigger_display }}</span>
+                {% if kpi.measurement_trigger_detail %}
+                    <span class="text-sm text-gray-700">{{ kpi.measurement_trigger_detail }}</span>
+                {% endif %}
+            </div>
         </div>
     {% endif %}
 

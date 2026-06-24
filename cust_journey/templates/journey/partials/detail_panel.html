@@ -77,13 +77,13 @@
                                 <span class="text-xs font-medium text-gray-400 uppercase">KPIs:</span>
                                 <div class="mt-1 space-y-1">
                                     {% for kpi in step.kpis.all %}
-                                        <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
+                                        <button hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
                                                 hx-target="#modal-content" hx-swap="innerHTML"
                                                 class="text-sm text-blue-600 hover:text-blue-800 text-left flex items-center gap-2">
                                             <span class="text-xs px-1.5 py-0.5 rounded-full
-                                                {% if kpi.kpi_type == 'behavioral' %}bg-blue-50 text-blue-700
-                                                {% elif kpi.kpi_type == 'experience' %}bg-green-50 text-green-700
-                                                {% elif kpi.kpi_type == 'operational' %}bg-purple-50 text-purple-700
+                                                {% if kpi.kpi_type == 'behavioral' %}bg-green-50 text-green-700
+                                                {% elif kpi.kpi_type == 'experience' %}bg-purple-50 text-purple-700
+                                                {% elif kpi.kpi_type == 'operational' %}bg-blue-50 text-blue-700
                                                 {% else %}bg-gray-100 text-gray-500{% endif %}">
                                                 {{ kpi.get_kpi_type_display|default:'n.a.' }}
                                             </span>
@@ -131,13 +131,13 @@
                     <span class="text-xs font-medium text-gray-400 uppercase">Related KPIs ({{ kpis|length }}):</span>
                     <div class="mt-1 space-y-1">
                         {% for kpi in kpis %}
-                            <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
+                            <button hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
                                     hx-target="#modal-content" hx-swap="innerHTML"
                                     class="text-sm text-blue-600 hover:text-blue-800 text-left flex items-center gap-2">
                                 <span class="text-xs px-1.5 py-0.5 rounded-full
-                                    {% if kpi.kpi_type == 'behavioral' %}bg-blue-50 text-blue-700
-                                    {% elif kpi.kpi_type == 'experience' %}bg-green-50 text-green-700
-                                    {% elif kpi.kpi_type == 'operational' %}bg-purple-50 text-purple-700
+                                    {% if kpi.kpi_type == 'behavioral' %}bg-green-50 text-green-700
+                                    {% elif kpi.kpi_type == 'experience' %}bg-purple-50 text-purple-700
+                                    {% elif kpi.kpi_type == 'operational' %}bg-blue-50 text-blue-700
                                     {% else %}bg-gray-100 text-gray-500{% endif %}">
                                     {{ kpi.get_kpi_type_display|default:'n.a.' }}
                                 </span>
@@ -159,15 +159,15 @@
                 {% for kpi in kpis %}
                     <div class="bg-gray-50 rounded-md px-3 py-2 flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
+                            <button hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
                                     hx-target="#modal-content" hx-swap="innerHTML"
                                     class="text-sm font-medium text-blue-600 hover:text-blue-800 text-left">
                                 {{ kpi.name }}
                             </button>
                             <span class="text-xs px-1.5 py-0.5 rounded-full
-                                {% if kpi.kpi_type == 'behavioral' %}bg-blue-50 text-blue-700
-                                {% elif kpi.kpi_type == 'experience' %}bg-green-50 text-green-700
-                                {% elif kpi.kpi_type == 'operational' %}bg-purple-50 text-purple-700
+                                {% if kpi.kpi_type == 'behavioral' %}bg-green-50 text-green-700
+                                {% elif kpi.kpi_type == 'experience' %}bg-purple-50 text-purple-700
+                                {% elif kpi.kpi_type == 'operational' %}bg-blue-50 text-blue-700
                                 {% else %}bg-gray-100 text-gray-500{% endif %}">
                                 {{ kpi.get_kpi_type_display|default:'n.a.' }}
                             </span>

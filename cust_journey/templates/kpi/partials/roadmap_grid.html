@@ -1,42 +1,49 @@
 {% if quarters %}
     <div class="overflow-x-auto pb-2">
-        <div class="grid gap-4" style="grid-template-columns: repeat({{ quarters|length }}, minmax(300px, 1fr));">
+        <div class="grid gap-4" style="grid-template-columns: repeat({{ quarters|length }}, minmax(350px, 1fr));">
             {% for q in quarters %}
             <div class="bg-white border border-gray-200 rounded-lg">
                 <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
                     <h2 class="text-sm font-semibold text-gray-700">{{ q }}</h2>
                 </div>
-                <div class="p-3 space-y-2">
+                <div class="p-3 space-y-2 min-h-[2.5rem]"
+                     data-quarter="{{ q }}"
+                     x-data="{}"
+                     x-init="new Sortable($el, { group: 'roadmap-quarters', handle: '.drag-handle', animation: 150, onEnd: function(evt) { var quarter = evt.to.dataset.quarter; var ids = []; evt.to.querySelectorAll('[data-kpi-id]').forEach(function(el) { ids.push(el.dataset.kpiId); }); var kpiId = evt.item.dataset.kpiId; var moveUrl = evt.item.dataset.moveUrl; htmx.ajax('POST', moveUrl, { target: '#roadmap-grid', swap: 'innerHTML', values: { quarter: quarter, kpi_ids: ids.join(','), lifecycle_phase: '{{ active_lifecycle_phase }}', owner: '{{ active_owner|escapejs }}' } }); } })">
                     {% for kpi in all_kpis %}
                         {% if kpi.target_quarter == q %}
-                            <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
-                                    hx-target="#modal-content" hx-swap="innerHTML"
-                                    class="w-full text-left border rounded-md px-3 py-2 hover:shadow transition-shadow
-                                        {% if kpi.implementation_phase == 'defined' %}border-gray-300 bg-gray-50
-                                        {% elif kpi.implementation_phase == 'data_sourced' %}border-yellow-300 bg-yellow-50
-                                        {% elif kpi.implementation_phase == 'instrumented' %}border-blue-300 bg-blue-50
-                                        {% else %}border-green-300 bg-green-50{% endif %}">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <div class="w-1.5 h-1.5 rounded-full flex-shrink-0
-                                        {% if kpi.implementation_phase == 'defined' %}bg-gray-400
-                                        {% elif kpi.implementation_phase == 'data_sourced' %}bg-yellow-500
-                                        {% elif kpi.implementation_phase == 'instrumented' %}bg-blue-500
-                                        {% else %}bg-green-500{% endif %}"></div>
-                                    <span class="text-sm font-medium text-gray-800 truncate">{{ kpi.name }}</span>
-                                </div>
-                                <div class="flex items-center gap-2 text-xs text-gray-400">
-                                    <span>{{ kpi.get_implementation_phase_display }}</span>
-                                    {% if kpi.impact and kpi.effort %}
-                                        <span>· I{{ kpi.impact }} E{{ kpi.effort }}</span>
-                                    {% endif %}
-                                    <span>{{ kpi.lifecycle_phase.name|default:'' }}</span>
-                                </div>
-                            </button>
+                            <div data-kpi-id="{{ kpi.pk }}" data-move-url="{% url 'kpi:kpi_roadmap_move' kpi.pk %}"
+                                 class="flex items-start border rounded-md hover:shadow transition-shadow
+                                     {% if kpi.implementation_phase == 'defined' %}border-gray-300 bg-gray-50
+                                     {% elif kpi.implementation_phase == 'data_sourced' %}border-yellow-300 bg-yellow-50
+                                     {% elif kpi.implementation_phase == 'instrumented' %}border-blue-300 bg-blue-50
+                                     {% else %}border-green-300 bg-green-50{% endif %}">
+                                <span class="drag-handle flex-shrink-0 px-1.5 py-2 text-gray-300 hover:text-gray-500 cursor-grab select-none leading-none" title="Drag to reorder">⋮⋮</span>
+                                <button hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
+                                        hx-target="#modal-content" hx-swap="innerHTML"
+                                        class="flex-1 text-left px-3 py-2">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <div class="w-1.5 h-1.5 rounded-full flex-shrink-0
+                                            {% if kpi.implementation_phase == 'defined' %}bg-gray-400
+                                            {% elif kpi.implementation_phase == 'data_sourced' %}bg-yellow-500
+                                            {% elif kpi.implementation_phase == 'instrumented' %}bg-blue-500
+                                            {% else %}bg-green-500{% endif %}"></div>
+                                        <span class="text-sm font-medium text-gray-800 truncate">{{ kpi.name }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                                        <span>{{ kpi.get_implementation_phase_display }}</span>
+                                        {% if kpi.impact and kpi.effort %}
+                                            <span>· I{{ kpi.get_impact_display|slice:':1' }} E{{ kpi.get_effort_display|slice:':1' }}</span>
+                                        {% endif %}
+                                        <span>{{ kpi.lifecycle_phase.name|default:'' }}</span>
+                                    </div>
+                                </button>
+                            </div>
                         {% endif %}
                     {% endfor %}
                 </div>
             </div>
-        {% endfor %}
+            {% endfor %}
         </div>
     </div>
 {% else %}

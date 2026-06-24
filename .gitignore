@@ -18,6 +18,8 @@ wheels/
 db.sqlite3
 *.sqlite3
 candidate-kpi.csv
+kpi-workshop.html
+.frontend-slides/
 
 # OS files
 .DS_Store

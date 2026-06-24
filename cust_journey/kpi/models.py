@@ -39,40 +39,25 @@ class KPI(models.Model):
         INSTRUMENTED = 'instrumented', '3. Instrumented'
         ACTIVELY_REVIEWED = 'actively_reviewed', '4. Actively reviewed'
 
+    class MeasurementTrigger(models.TextChoices):
+        FIXED_INTERVAL = 'fixed_interval', 'Fixed interval'
+        AFTER_EVENT = 'after_event', 'After event'
+
+    class Impact(models.TextChoices):
+        HIGH = 'high', 'High'
+        LOW = 'low', 'Low'
+
+    class Effort(models.TextChoices):
+        HIGH = 'high', 'High'
+        LOW = 'low', 'Low'
+
+    # --- Identity ---
     name = models.CharField(max_length=300)
     level = models.CharField(max_length=50, choices=Level.choices)
     kpi_type = models.CharField(max_length=50, choices=KPIType.choices, blank=True, default='')
     description = models.TextField(blank=True)
-    owner = models.CharField(max_length=200, blank=True)
-    why_important = models.TextField(blank=True)
-    do_we_measure_it = models.CharField(
-        max_length=20, choices=MeasureStatus.choices, default='no'
-    )
-    how_measure_it = models.TextField(blank=True)
-    where_store = models.CharField(max_length=300, blank=True)
-    review_cadence = models.CharField(
-        max_length=20, choices=ReviewCadence.choices, blank=True, default=''
-    )
-    influences = models.TextField(blank=True)
-    initiatives = models.TextField(blank=True)
-    notes = models.TextField(blank=True)
 
-    impact = models.IntegerField(
-        choices=[(i, str(i)) for i in range(1, 6)],
-        blank=True, null=True,
-        help_text='1 = lowest, 5 = highest',
-    )
-    effort = models.IntegerField(
-        choices=[(i, str(i)) for i in range(1, 6)],
-        blank=True, null=True,
-        help_text='1 = least effort, 5 = most effort',
-    )
-    implementation_phase = models.CharField(
-        max_length=30, choices=ImplementationPhase.choices,
-        default='defined',
-    )
-    target_quarter = models.CharField(max_length=10, blank=True, default='')
-
+    # --- Journey ---
     lifecycle_phase = models.ForeignKey(
         'journey.Phase',
         on_delete=models.SET_NULL,
@@ -95,6 +80,45 @@ class KPI(models.Model):
         related_name='kpis',
     )
 
+    # --- Ownership ---
+    owner = models.CharField(max_length=200, blank=True)
+    why_important = models.TextField(blank=True)
+
+    # --- Measurement ---
+    do_we_measure_it = models.CharField(
+        max_length=20, choices=MeasureStatus.choices, default='no'
+    )
+    measurement_current = models.TextField(blank=True)
+    measurement_target = models.TextField(blank=True)
+    measurement_trigger = models.CharField(
+        max_length=20, choices=MeasurementTrigger.choices, blank=True, default=''
+    )
+    measurement_trigger_detail = models.TextField(blank=True)
+    store_current = models.CharField(max_length=300, blank=True)
+    store_target = models.CharField(max_length=300, blank=True)
+    where_store = models.CharField(max_length=300, blank=True)
+    review_cadence = models.CharField(
+        max_length=20, choices=ReviewCadence.choices, blank=True, default=''
+    )
+
+    # --- Prioritization ---
+    impact = models.CharField(
+        max_length=4, choices=Impact.choices,
+        blank=True, default='',
+    )
+    effort = models.CharField(
+        max_length=4, choices=Effort.choices,
+        blank=True, default='',
+    )
+    implementation_phase = models.CharField(
+        max_length=30, choices=ImplementationPhase.choices,
+        default='defined',
+    )
+    target_quarter = models.CharField(max_length=10, blank=True, default='')
+    sort_order = models.IntegerField(default=0)
+    roadmap_order = models.IntegerField(default=0)
+
+    # --- Relationships ---
     contributes_to = models.ManyToManyField(
         'self',
         symmetrical=False,
@@ -102,6 +126,13 @@ class KPI(models.Model):
         related_name='supported_by',
         help_text='Higher-level KPIs this KPI contributes to',
     )
+    initiatives = models.TextField(blank=True)
+
+    # --- Notes ---
+    notes = models.TextField(blank=True)
+
+    # --- Deprecated fields (to be removed) ---
+    how_measure_it = models.TextField(blank=True)
 
     class Meta:
         ordering = ['level', 'lifecycle_phase__order', 'kpi_type', 'name']
@@ -110,7 +141,7 @@ class KPI(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('kpi:kpi_detail', kwargs={'pk': self.pk})
+        return reverse('kpi:kpi_edit', kwargs={'pk': self.pk})
 
     def get_ancestor_ids(self):
         ids = set()

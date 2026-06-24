@@ -1,7 +1,7 @@
 {% for kpi in kpis %}
     <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
         <td class="px-4 py-3">
-            <button hx-get="{% url 'kpi:kpi_detail' kpi.pk %}"
+            <button hx-get="{% url 'kpi:kpi_edit' kpi.pk %}"
                     hx-target="#modal-content"
                     hx-swap="innerHTML"
                     class="text-blue-600 hover:text-blue-800 font-medium text-sm text-left">
@@ -19,11 +19,11 @@
         </td>
         <td class="px-4 py-3">
             {% if kpi.kpi_type == 'behavioral' %}
-                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Behavioral</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">Behavioral</span>
             {% elif kpi.kpi_type == 'experience' %}
-                <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">Experience</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Experience</span>
             {% elif kpi.kpi_type == 'operational' %}
-                <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Operational</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Operational</span>
             {% else %}
                 <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">n.a.</span>
             {% endif %}
@@ -40,10 +40,10 @@
             {% endif %}
         </td>
         <td class="px-4 py-3 text-gray-600 text-center">
-            {{ kpi.impact|default:'—' }}
+            {% if kpi.impact %}{{ kpi.get_impact_display }}{% else %}—{% endif %}
         </td>
         <td class="px-4 py-3 text-gray-600 text-center">
-            {{ kpi.effort|default:'—' }}
+            {% if kpi.effort %}{{ kpi.get_effort_display }}{% else %}—{% endif %}
         </td>
         <td class="px-4 py-3 text-gray-600">{{ kpi.target_quarter|default:'—' }}</td>
         <td class="px-4 py-3 text-gray-700 text-xs">{{ kpi.owner|truncatechars:24 }}</td>

@@ -17,21 +17,25 @@ class KPIAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description', 'owner']
     fieldsets = (
         (None, {
-            'fields': ('name', 'level', 'kpi_type', 'owner', 'review_cadence'),
+            'fields': ('name', 'level', 'kpi_type', 'description'),
         }),
-        ('Journey link', {
+        ('Journey', {
             'fields': ('lifecycle_phase', 'journey_phase', 'step'),
         }),
-        ('Details', {
+        ('Ownership', {
+            'fields': ('owner', 'why_important'),
+        }),
+        ('Measurement', {
             'fields': (
-                'description', 'why_important', 'do_we_measure_it',
-                'how_measure_it', 'where_store',
+                'do_we_measure_it', 'measurement_current', 'measurement_target',
+                'measurement_trigger', 'measurement_trigger_detail',
+                'store_current', 'store_target', 'review_cadence',
             ),
         }),
-        ('Prioritization & roadmap', {
+        ('Prioritization', {
             'fields': ('impact', 'effort', 'implementation_phase', 'target_quarter'),
         }),
-        ('Impact & tracking', {
-            'fields': ('influences', 'initiatives', 'notes'),
+        ('Relationships', {
+            'fields': ('contributes_to', 'initiatives', 'notes'),
         }),
     )

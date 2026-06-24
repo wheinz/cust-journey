@@ -14,6 +14,7 @@
           hx-get="{% url 'kpi:roadmap' %}"
           hx-target="#roadmap-grid"
           hx-swap="innerHTML"
+          hx-push-url="true"
           hx-trigger="change from:select, keyup delay:300ms from:input[name=owner]"
           class="mb-6 bg-white border border-gray-200 rounded-lg p-4">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">

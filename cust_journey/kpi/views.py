@@ -1,5 +1,8 @@
 from django.db.models import Prefetch, Q
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
 from .models import KPI
@@ -106,25 +109,19 @@ class KPIFilterView(KPITableView):
     template_name = 'kpi/partials/table_section.html'
 
 
-class KPIDetailView(DetailView):
-    model = KPI
-    template_name = 'kpi/partials/kpi_detail.html'
-    context_object_name = 'kpi'
-
-    def get_queryset(self):
-        return KPI.objects.prefetch_related('contributes_to', 'supported_by')
-
-
 class KPICreateView(CreateView):
     model = KPI
     template_name = 'kpi/partials/form_modal.html'
     fields = [
-        'name', 'level', 'kpi_type', 'description', 'owner',
-        'why_important', 'do_we_measure_it', 'how_measure_it',
-        'where_store', 'review_cadence', 'influences', 'initiatives',
-        'notes', 'lifecycle_phase', 'journey_phase', 'step',
+        'name', 'level', 'kpi_type', 'description',
+        'lifecycle_phase', 'journey_phase', 'step',
+        'owner', 'why_important',
+        'do_we_measure_it', 'measurement_current', 'measurement_target',
+        'measurement_trigger', 'measurement_trigger_detail',
+        'store_current', 'store_target', 'review_cadence',
         'impact', 'effort', 'implementation_phase', 'target_quarter',
-        'contributes_to',
+        'contributes_to', 'initiatives',
+        'notes',
     ]
 
     def get_form(self, form_class=None):
@@ -151,11 +148,24 @@ class KPICreateView(CreateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['title'] = 'Add KPI'
+        ctx['form_sections'] = [
+            ('Identity', ['name', 'level', 'kpi_type', 'description']),
+            ('Journey', ['lifecycle_phase', 'journey_phase', 'step']),
+            ('Ownership', ['owner', 'why_important']),
+            ('Measurement', [
+                'do_we_measure_it', 'measurement_current', 'measurement_target',
+                'measurement_trigger', 'measurement_trigger_detail',
+                'store_current', 'store_target', 'review_cadence',
+            ]),
+            ('Prioritization', ['impact', 'effort', 'implementation_phase', 'target_quarter']),
+            ('Relationships', ['contributes_to', 'initiatives']),
+            ('Notes', ['notes']),
+        ]
         return ctx
 
     def get_success_url(self):
         referer = self.request.META.get('HTTP_REFERER', '')
-        if '/journey/' in referer:
+        if referer:
             return referer
         return reverse_lazy('kpi:table')
 
@@ -164,12 +174,15 @@ class KPIUpdateView(UpdateView):
     model = KPI
     template_name = 'kpi/partials/form_modal.html'
     fields = [
-        'name', 'level', 'kpi_type', 'description', 'owner',
-        'why_important', 'do_we_measure_it', 'how_measure_it',
-        'where_store', 'review_cadence', 'influences', 'initiatives',
-        'notes', 'lifecycle_phase', 'journey_phase', 'step',
+        'name', 'level', 'kpi_type', 'description',
+        'lifecycle_phase', 'journey_phase', 'step',
+        'owner', 'why_important',
+        'do_we_measure_it', 'measurement_current', 'measurement_target',
+        'measurement_trigger', 'measurement_trigger_detail',
+        'store_current', 'store_target', 'review_cadence',
         'impact', 'effort', 'implementation_phase', 'target_quarter',
-        'contributes_to',
+        'contributes_to', 'initiatives',
+        'notes',
     ]
 
     def get_form(self, form_class=None):
@@ -189,11 +202,24 @@ class KPIUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['title'] = 'Edit KPI'
+        ctx['form_sections'] = [
+            ('Identity', ['name', 'level', 'kpi_type', 'description']),
+            ('Journey', ['lifecycle_phase', 'journey_phase', 'step']),
+            ('Ownership', ['owner', 'why_important']),
+            ('Measurement', [
+                'do_we_measure_it', 'measurement_current', 'measurement_target',
+                'measurement_trigger', 'measurement_trigger_detail',
+                'store_current', 'store_target', 'review_cadence',
+            ]),
+            ('Prioritization', ['impact', 'effort', 'implementation_phase', 'target_quarter']),
+            ('Relationships', ['contributes_to', 'initiatives']),
+            ('Notes', ['notes']),
+        ]
         return ctx
 
     def get_success_url(self):
         referer = self.request.META.get('HTTP_REFERER', '')
-        if '/journey/' in referer:
+        if referer:
             return referer
         return reverse_lazy('kpi:table')
 
@@ -204,9 +230,91 @@ class KPIDeleteView(DeleteView):
 
     def get_success_url(self):
         referer = self.request.META.get('HTTP_REFERER', '')
-        if '/journey/' in referer:
+        if referer:
             return referer
         return reverse_lazy('kpi:table')
+
+
+BUCKET_SCORES = {
+    'quick_wins': (KPI.Impact.HIGH, KPI.Effort.LOW),
+    'strategic': (KPI.Impact.HIGH, KPI.Effort.HIGH),
+    'fill_ins': (KPI.Impact.LOW, KPI.Effort.LOW),
+    'avoid': (KPI.Impact.LOW, KPI.Effort.HIGH),
+}
+
+BUCKET_CLASSIFIER = {
+    (KPI.Impact.HIGH, KPI.Effort.LOW): 'quick_wins',
+    (KPI.Impact.HIGH, KPI.Effort.HIGH): 'strategic',
+    (KPI.Impact.LOW, KPI.Effort.LOW): 'fill_ins',
+    (KPI.Impact.LOW, KPI.Effort.HIGH): 'avoid',
+}
+
+
+def _get_prioritize_context(request, lc_filter=None, owner_filter=None):
+    kpis = KPI.objects.select_related(
+        'lifecycle_phase', 'journey_phase'
+    ).exclude(impact='').exclude(effort='').order_by('sort_order')
+
+    if lc_filter is None:
+        lc_filter = request.GET.get('lifecycle_phase', '')
+    if owner_filter is None:
+        owner_filter = request.GET.get('owner', '')
+
+    if lc_filter:
+        kpis = kpis.filter(lifecycle_phase_id=lc_filter)
+    if owner_filter:
+        kpis = kpis.filter(owner__icontains=owner_filter)
+
+    kpis = list(kpis)
+
+    quick_wins = [k for k in kpis if k.impact == KPI.Impact.HIGH and k.effort == KPI.Effort.LOW]
+    strategic = [k for k in kpis if k.impact == KPI.Impact.HIGH and k.effort == KPI.Effort.HIGH]
+    fill_ins = [k for k in kpis if k.impact == KPI.Impact.LOW and k.effort == KPI.Effort.LOW]
+    avoid = [k for k in kpis if k.impact == KPI.Impact.LOW and k.effort == KPI.Effort.HIGH]
+
+    unscored_qs = KPI.objects.filter(Q(impact='') | Q(effort=''))
+    if lc_filter:
+        unscored_qs = unscored_qs.filter(lifecycle_phase_id=lc_filter)
+    if owner_filter:
+        unscored_qs = unscored_qs.filter(owner__icontains=owner_filter)
+
+    from journey.models import Phase
+
+    return {
+        'quick_wins': quick_wins,
+        'strategic': strategic,
+        'fill_ins': fill_ins,
+        'avoid': avoid,
+        'unscored': unscored_qs.count(),
+        'total_scored': len(kpis),
+        'show_filtered': bool(lc_filter or owner_filter),
+        'lifecycle_phase_choices': Phase.objects.order_by('order'),
+        'active_owner': owner_filter,
+        'active_lifecycle_phase': lc_filter,
+    }
+
+
+@require_POST
+def kpi_move(request, pk):
+    kpi = get_object_or_404(KPI, pk=pk)
+    bucket = request.POST.get('bucket', '')
+    scores = BUCKET_SCORES.get(bucket)
+
+    if scores:
+        kpi.impact = scores[0]
+        kpi.effort = scores[1]
+
+    kpi_ids = request.POST.get('kpi_ids', '')
+    if kpi_ids:
+        for idx, kpi_id in enumerate(kpi_ids.split(',')):
+            KPI.objects.filter(pk=kpi_id.strip()).update(sort_order=idx)
+
+    kpi.save(update_fields=['impact', 'effort'])
+
+    lc_filter = request.POST.get('lifecycle_phase', '')
+    owner_filter = request.POST.get('owner', '')
+    ctx = _get_prioritize_context(request, lc_filter=lc_filter, owner_filter=owner_filter)
+    return render(request, 'kpi/partials/prioritize_grid.html', ctx)
 
 
 class PrioritizeView(TemplateView):
@@ -214,38 +322,7 @@ class PrioritizeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        kpis = KPI.objects.select_related(
-            'lifecycle_phase', 'journey_phase'
-        ).filter(impact__isnull=False, effort__isnull=False)
-
-        lc_filter = self.request.GET.get('lifecycle_phase', '')
-        owner_filter = self.request.GET.get('owner', '')
-
-        if lc_filter:
-            kpis = kpis.filter(lifecycle_phase_id=lc_filter)
-        if owner_filter:
-            kpis = kpis.filter(owner__icontains=owner_filter)
-
-        kpis = list(kpis)
-
-        ctx['quick_wins'] = [k for k in kpis if k.impact >= 4 and k.effort <= 2]
-        ctx['strategic'] = [k for k in kpis if k.impact >= 4 and k.effort >= 3]
-        ctx['fill_ins'] = [k for k in kpis if k.impact <= 3 and k.effort <= 2]
-        ctx['avoid'] = [k for k in kpis if k.impact <= 3 and k.effort >= 3]
-
-        unscored_qs = KPI.objects.filter(Q(impact__isnull=True) | Q(effort__isnull=True))
-        if lc_filter:
-            unscored_qs = unscored_qs.filter(lifecycle_phase_id=lc_filter)
-        if owner_filter:
-            unscored_qs = unscored_qs.filter(owner__icontains=owner_filter)
-        ctx['unscored'] = unscored_qs.count()
-        ctx['total_scored'] = len(kpis)
-        ctx['show_filtered'] = bool(lc_filter or owner_filter)
-
-        from journey.models import Phase
-        ctx['lifecycle_phase_choices'] = Phase.objects.order_by('order')
-        ctx['active_owner'] = owner_filter
-        ctx['active_lifecycle_phase'] = lc_filter
+        ctx.update(_get_prioritize_context(self.request))
         return ctx
 
     def get_template_names(self):
@@ -259,36 +336,63 @@ class RoadmapView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        kpis = KPI.objects.select_related(
-            'lifecycle_phase', 'journey_phase'
-        ).exclude(target_quarter='').order_by(
-            'target_quarter', 'lifecycle_phase__order'
-        )
-
-        lc_filter = self.request.GET.get('lifecycle_phase', '')
-        owner_filter = self.request.GET.get('owner', '')
-
-        if lc_filter:
-            kpis = kpis.filter(lifecycle_phase_id=lc_filter)
-        if owner_filter:
-            kpis = kpis.filter(owner__icontains=owner_filter)
-
-        from journey.models import Phase
-
-        # Always show all quarters from the full dataset
-        all_q_kpis = KPI.objects.exclude(target_quarter='').order_by('target_quarter')
-        quarters = list(dict.fromkeys(k.target_quarter for k in all_q_kpis))
-
-        ctx['lifecycle_phase_choices'] = Phase.objects.order_by('order')
-        ctx['owner_choices'] = KPI.objects.exclude(owner='').values_list('owner', flat=True).distinct().order_by('owner')
-        ctx['active_owner'] = owner_filter
-        ctx['active_lifecycle_phase'] = lc_filter
-        ctx['quarters'] = quarters
-        ctx['all_kpis'] = list(kpis)
-        ctx['show_filtered'] = bool(lc_filter or owner_filter)
+        ctx.update(_get_roadmap_context(self.request))
         return ctx
 
     def get_template_names(self):
         if self.request.htmx:
             return ['kpi/partials/roadmap_grid.html']
         return [self.template_name]
+
+
+def _get_roadmap_context(request, lc_filter=None, owner_filter=None):
+    kpis = KPI.objects.select_related(
+        'lifecycle_phase', 'journey_phase'
+    ).exclude(target_quarter='').order_by(
+        'target_quarter', 'roadmap_order'
+    )
+
+    if lc_filter is None:
+        lc_filter = request.GET.get('lifecycle_phase', '')
+    if owner_filter is None:
+        owner_filter = request.GET.get('owner', '')
+
+    if lc_filter:
+        kpis = kpis.filter(lifecycle_phase_id=lc_filter)
+    if owner_filter:
+        kpis = kpis.filter(owner__icontains=owner_filter)
+
+    from journey.models import Phase
+
+    all_q_kpis = KPI.objects.exclude(target_quarter='').order_by('target_quarter')
+    quarters = list(dict.fromkeys(k.target_quarter for k in all_q_kpis))
+
+    return {
+        'lifecycle_phase_choices': Phase.objects.order_by('order'),
+        'owner_choices': KPI.objects.exclude(owner='').values_list('owner', flat=True).distinct().order_by('owner'),
+        'active_owner': owner_filter,
+        'active_lifecycle_phase': lc_filter,
+        'quarters': quarters,
+        'all_kpis': list(kpis),
+        'show_filtered': bool(lc_filter or owner_filter),
+    }
+
+
+@require_POST
+def kpi_roadmap_move(request, pk):
+    kpi = get_object_or_404(KPI, pk=pk)
+    quarter = request.POST.get('quarter', '')
+    if quarter:
+        kpi.target_quarter = quarter
+
+    kpi_ids = request.POST.get('kpi_ids', '')
+    if kpi_ids:
+        for idx, kpi_id in enumerate(kpi_ids.split(',')):
+            KPI.objects.filter(pk=kpi_id.strip()).update(roadmap_order=idx)
+
+    kpi.save(update_fields=['target_quarter'])
+
+    lc_filter = request.POST.get('lifecycle_phase', '')
+    owner_filter = request.POST.get('owner', '')
+    ctx = _get_roadmap_context(request, lc_filter=lc_filter, owner_filter=owner_filter)
+    return render(request, 'kpi/partials/roadmap_grid.html', ctx)
