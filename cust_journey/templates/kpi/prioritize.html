@@ -25,7 +25,7 @@
           hx-target="#prioritize-grid"
           hx-swap="innerHTML"
           hx-push-url="true"
-          hx-trigger="change from:select, keyup delay:300ms from:input[name=owner]"
+          hx-trigger="change from:select"
           class="mb-6 bg-white border border-gray-200 rounded-lg p-4">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
@@ -39,9 +39,12 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Owner</label>
-                <input type="text" name="owner" value="{{ active_owner }}"
-                       class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Filter by owner...">
+                <select name="owner" class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    {% for owner in owner_choices %}
+                        <option value="{{ owner }}" {% if active_owner == owner %}selected{% endif %}>{{ owner }}</option>
+                    {% endfor %}
+                </select>
             </div>
             {% if show_filtered %}
                 <div class="flex items-end">

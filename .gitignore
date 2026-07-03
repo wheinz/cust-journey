@@ -21,6 +21,9 @@ candidate-kpi.csv
 kpi-workshop.html
 .frontend-slides/
 
+# Backups
+backups/
+
 # OS files
 .DS_Store
 Thumbs.db

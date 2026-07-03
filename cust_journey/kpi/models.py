@@ -33,6 +33,14 @@ class KPI(models.Model):
         QUARTERLY = 'quarterly', 'Quarterly'
         ANNUALLY = 'annually', 'Annually'
 
+    class MonitoringCadence(models.TextChoices):
+        CONTINUOUSLY = 'continuously', 'Continuously / Real-time'
+        DAILY = 'daily', 'Daily'
+        WEEKLY = 'weekly', 'Weekly'
+        MONTHLY = 'monthly', 'Monthly'
+        QUARTERLY = 'quarterly', 'Quarterly'
+        ANNUALLY = 'annually', 'Annually'
+
     class ImplementationPhase(models.TextChoices):
         DEFINED = 'defined', '1. Defined'
         DATA_SOURCED = 'data_sourced', '2. Data sourced'
@@ -99,6 +107,9 @@ class KPI(models.Model):
     where_store = models.CharField(max_length=300, blank=True)
     review_cadence = models.CharField(
         max_length=20, choices=ReviewCadence.choices, blank=True, default=''
+    )
+    monitoring_cadence = models.CharField(
+        max_length=20, choices=MonitoringCadence.choices, blank=True, default=''
     )
 
     # --- Prioritization ---

@@ -232,6 +232,10 @@ class Command(BaseCommand):
                 empty = KPI.objects.filter(**{field: ""}).count()
             pct = round(empty / total * 100)
             self.stdout.write(f"  {field}: {empty}/{total} empty ({pct}%)")
+            if field == "review_cadence":
+                mon_empty = KPI.objects.filter(monitoring_cadence="").count()
+                mon_pct = round(mon_empty / total * 100)
+                self.stdout.write(f"  monitoring_cadence: {mon_empty}/{total} empty ({mon_pct}%)")
 
     @staticmethod
     def _split_measurement(text, is_measured):

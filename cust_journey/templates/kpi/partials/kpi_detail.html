@@ -27,6 +27,10 @@
             <p class="text-sm text-gray-900 mt-1">{{ kpi.get_review_cadence_display|default:'—' }}</p>
         </div>
         <div>
+            <label class="text-xs font-medium text-gray-500 uppercase">Monitoring Cadence</label>
+            <p class="text-sm text-gray-900 mt-1">{{ kpi.get_monitoring_cadence_display|default:'—' }}</p>
+        </div>
+        <div>
             <label class="text-xs font-medium text-gray-500 uppercase">Lifecycle Phase</label>
             <p class="text-sm text-gray-900 mt-1">{{ kpi.lifecycle_phase.name|default:'—' }}</p>
         </div>

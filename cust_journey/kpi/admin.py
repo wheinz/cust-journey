@@ -8,10 +8,10 @@ class KPIAdmin(admin.ModelAdmin):
     list_display = [
         'name', 'level', 'kpi_type', 'owner', 'lifecycle_phase',
         'implementation_phase', 'target_quarter', 'impact', 'effort',
-        'review_cadence', 'do_we_measure_it',
+        'review_cadence', 'monitoring_cadence', 'do_we_measure_it',
     ]
     list_filter = [
-        'level', 'kpi_type', 'review_cadence', 'do_we_measure_it',
+        'level', 'kpi_type', 'review_cadence', 'monitoring_cadence', 'do_we_measure_it',
         'implementation_phase', 'target_quarter', 'lifecycle_phase',
     ]
     search_fields = ['name', 'description', 'owner']
@@ -29,7 +29,8 @@ class KPIAdmin(admin.ModelAdmin):
             'fields': (
                 'do_we_measure_it', 'measurement_current', 'measurement_target',
                 'measurement_trigger', 'measurement_trigger_detail',
-                'store_current', 'store_target', 'review_cadence',
+                'store_current', 'store_target',
+                'review_cadence', 'monitoring_cadence',
             ),
         }),
         ('Prioritization', {
