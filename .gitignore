@@ -16,7 +16,10 @@ wheels/
 
 # Django
 db.sqlite3
-*.sqlite3
+db.sqlite3-wal
+db.sqlite3-shm
+data/
+staticfiles/
 candidate-kpi.csv
 kpi-workshop.html
 .frontend-slides/

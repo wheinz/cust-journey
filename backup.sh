@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DB_FILE="${PROJECT_DIR}/db.sqlite3"
+DB_FILE="${DB_PATH:-${PROJECT_DIR}/db.sqlite3}"
 BACKUP_DIR="${PROJECT_DIR}/backups"
 RETENTION_DAYS=7
 
