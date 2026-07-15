@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+export PYTHONPATH=/app/cust_journey:$PYTHONPATH
+
 uv run python cust_journey/manage.py migrate --noinput
 uv run python cust_journey/manage.py collectstatic --noinput
 
