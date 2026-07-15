@@ -1,6 +1,8 @@
 # Customer Journey Tool — Handover Guide
 
-This document is for the IT team taking over the project. It explains what the tool does, how it's built, and how to host it — no Django experience assumed.
+This document explains what the tool does and how it's built. For step-by-step deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** — a runbook tested on Hetzner/Ubuntu 24.04.
+
+No Django experience assumed.
 
 ---
 
@@ -206,6 +208,8 @@ DB_PATH=/app/data/db.sqlite3
 ```
 
 To generate a secret key: `python3 -c "import secrets; print(secrets.token_urlsafe(50))"`
+
+> **Cloudflare users**: If your domain is behind Cloudflare's proxy, set `DOMAIN=your-domain.com` as normal. Caddy will obtain a Let's Encrypt certificate for the origin server even through the proxy. Cloudflare handles edge TLS; Caddy handles origin TLS.
 
 **4. Start the application:**
 
